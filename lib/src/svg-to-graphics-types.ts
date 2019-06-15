@@ -1,7 +1,7 @@
 export interface SvgCmdData {
   cmd: string;
   args: string | string[] | number[];
-  original: string;
+  original?: string;
   relative?: boolean;
   arcPoint?: number;
 }
@@ -52,4 +52,17 @@ export interface ArcReplace {
   curIndex: number;
   complete: boolean;
   arr: any[];
+}
+
+export interface ArcToLineArgs extends Array<any> {
+  0: number;
+  1: number;
+  2: number[];
+  3: { index: number, arr: any[], processed: boolean, replaced: boolean };
+}
+
+export interface ConvertArgsData {
+  cmdArr: SvgCmdData[];
+  arcToLinesArgsArr: ArcToLineArgs[];
+  arcReplace: ArcReplace;
 }

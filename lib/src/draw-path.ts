@@ -10,13 +10,14 @@ export default function drawPath(cmdArr: SvgCmdData[], graphics?: createjs.Graph
   cmdArr.forEach(cmd => {
     d = 1000;
     if (cmd.arcPoint) {
-      d = Math.sqrt(Math.pow(cmd.args[0] - x, 2) + Math.pow(cmd.args[1] - y, 2));
+      d = Math.sqrt(Math.pow(cmd.args[0] as number - x, 2) + Math.pow(cmd.args[1] as number - y, 2));
     }
+    // reduce points if less than 5px apart. traced arc adds alot of points
     if (d > 5) {
       const command = cmd.cmd as keyof createjs.Graphics;
       (gfx[command] as any).apply(gfx, cmd.args);
-      x = cmd.args[0];
-      y = cmd.args[1];
+      x = cmd.args[0] as number;
+      y = cmd.args[1] as number;
       usedCmds.push({ cmd: command, args: cmd.args });
     }
   });

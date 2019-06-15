@@ -1,155 +1,121 @@
-import { SvgCmdData, ArcReplace, CommandMap } from './svg-to-graphics-types';
+import { SvgCmdData, ArcReplace, CommandMap, ConvertArgsData, ArcToLineArgs } from './svg-to-graphics-types';
 import { map as cmdMap } from './command-map';
+
+let x: number;
+let y: number;
+let arcToLinesArgsArr: ArcToLineArgs[];
+let arcReplace: ArcReplace;
 
 const toOneDec = (num: number) => Math.round(num * 10) / 10;
 
 const removeBlanks = (str: string) => str !== '';
 
-function stepOne(cmdArr: SvgCmdData[]) {
-  let newArgs: string[] = [];
-  //
-  cmdArr.forEach((cmdData, i) => {
-    let args = cmdData.args;
-    const origLC = cmdData.original.toLowerCase();
-    //
-    if (typeof args === 'string') {
-      args = args.replace(/,/g, ' ').replace(/-/g, ' -').trim().split(' ').filter(removeBlanks);
-    }
-    //
-    (args as string[]).forEach( (arg: string) => {
-      const split = arg.split('.');
-      const dif = split.length - 2;
-      if (dif > 0) {
-        const concatArr = [];
-        let pos: number;
-        let str = arg;
-
-        for (let j = 0; j < dif; j++) {
-          pos = str.lastIndexOf('.');
-          concatArr.unshift(str.slice(pos));
-          str = str.slice(0, pos);
-        }
-        concatArr.unshift(str);
-        newArgs = newArgs.concat(concatArr);
-      } else {
-        newArgs.push(arg);
-      }
-    });
-  });
+function argsToNumArray(dta: SvgCmdData): SvgCmdData {
+  const args = (dta.args as string).split(' ').filter(removeBlanks).map((arg: string) => parseFloat(arg));
+  return Object.assign(dta, {args});
 }
 
-const convertArgs = (cmdArr: SvgCmdData[], arcReplace: ArcReplace, arcToLinesArgsArr: any[], index: number) => {
-  let x = 0;
-  let y = 0;
-  let prevCP1c;
-  let prevCP1q;
+/*
+  makeCommandsFromLongArgs():
+    Break up strung together svg commands into individual commands
+    and insert them into newCmdArr at the proper index.
+    Must be used in for loop (not forEach) in order to splice array being looped.
+*/
+function makeCommandsFromLongArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]) {
+  const args = dta.args as number[];
+  const lowerCaseSvgCmd = (dta.original as string).toLowerCase();
+  const origArgsLength = cmdMap[lowerCaseSvgCmd as keyof CommandMap].origArgsLength;
+  //
+  if (args.length > origArgsLength) {
+    console.log('too long');
+    args.splice(0, origArgsLength);
+    const newCmd = {
+      cmd: dta.cmd,
+      args,
+      original: dta.original,
+      relative: dta.relative,
+      // add index for debug purposes
+      index: i + 1
+    };
+    arr.splice(i + 1, 0, newCmd);
+  }
+}
 
-  cmdArr.forEach((cmdData, i) => {
-    // console.log('convertArgs loop', i, l, cmdArr);
-    let args = cmdData.args;
-    const origLC = cmdData.original.toLowerCase();
-    //
-    if (typeof args === 'string') {
-      args = args.replace(/,/g, ' ').replace(/-/g, ' -').trim().split(' ').filter(removeBlanks);
+function makeArgsAbsolute(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdData {
+  let args = dta.args as number[];
+  const isArc = dta.original === 'a' || dta.original === 'A';
+  // reset current xy values if args values are already absolute
+  if (!dta.relative) {
+    x = 0;
+    y = 0;
+  }
+  // map args to absolute values
+  const newArgs = args.map((val: number, idx: number) => {
+    let dif = idx % 2 === 0 ? x : y;
+    if (isArc) {
+      // dont add dif to index 2,3, & 4 of arc args. they are not xy values
+      if (idx === 2 || idx === 3 || idx === 4 ) dif = 0;
+      // svg arc has 7 values so flip even/odd logic to properly set xy values of end point
+      else if (idx > 4) dif = idx % 2 === 0 ? y : x;
     }
-    console.log(args);
-    // check for more than 1 decimal point in number as string
-    let newArgs: string[] = [];
-    // tslint:disable-next-line:prefer-for-of
-    (args as string[]).forEach((arg: string) => {
-      const split = arg.split('.');
-      const dif = split.length - 2;
-      if (dif > 0) {
-        const concatArr = [];
-        let pos: number;
-        let str = arg;
+    return toOneDec(val + dif);
+  });
+  // update current xy values
+  if (newArgs.length >= 2) {
+    x = newArgs[newArgs.length - 2];
+    y = newArgs[newArgs.length - 1];
+  }
+  //
+  return Object.assign(dta, { args: newArgs });
+}
 
-        for (let j = 0; j < dif; j++) {
-          pos = str.lastIndexOf('.');
-          concatArr.unshift(str.slice(pos));
-          str = str.slice(0, pos);
-        }
-        concatArr.unshift(str);
-        newArgs = newArgs.concat(concatArr);
-      } else {
-        newArgs.push(arg);
-      }
-    });
-    /* console.log('args.forEach complete'); */
-    args = newArgs;
-    /* console.log('new args', args); */
-    // handle commands longer than 6 aka multiple args for command strung together
-    if (args.length > cmdMap[origLC as keyof CommandMap].origArgsLength) {
-      // console.log('too long');
-      cmdData.args = args.splice(0, cmdMap[origLC as keyof CommandMap].origArgsLength);
-      const newCmd = {
-        cmd: cmdData.cmd,
-        args,
-        original: cmdData.original,
-        relative: cmdData.relative
-      };
-      args = cmdData.args;
-      cmdArr.splice(i + 1, 0, newCmd);
-      // console.log(newCmd, cmdData.args);
-      l++;
-    }
-    // console.log('after strung check', args);
-    if (origLC === 'h') {
-      // insert y into args of what was an svg h command
-      args.push(cmdData.relative ? 0 : y);
-    } else if (origLC === 'v') {
-      // insert x into args of what was an svg v command
-      args.unshift(cmdData.relative ? 0 : x);
-    }
-    // reset current xy values if args values are already absolute
-    if (!cmdData.relative) {
-      x = 0;
-      y = 0;
-    }
-    // make all args values absolute by adding xy
-    args.forEach((val, idx, array) => {
-      // array[idx] = Math.round((parseFloat(val) + (idx % 2 === 0 ? x : y)) * 10) / 10;
-      let dif = idx % 2 === 0 ? x : y;
-      if (origLC === 'a') {
-        dif = idx % 2 === 0 ? y : x;
-      }
-      if (dif > 0 && origLC === 'a' && idx < 5) {
-        dif = 0;
-      }
-      array[idx] = toOneDec(parseFloat(val) + dif);
-    });
-    // update current xy values
-    if (args.length >= 2) {
-      x = args[args.length - 2];
-      y = args[args.length - 1];
-    }
-    //
-    if (origLC === 'c' || origLC === 's') {
-      // insert control point into args of what was an svg s command
-      if (origLC === 's') {
-        args = prevCP1c.concat(args);
-        prevCP1c = args.slice(2, 2);
-      } else {
-        // save control point of svg c command
-        prevCP1c = args.slice(0, 2);
-      }
-    } else if (origLC === 'q' || origLC === 't') {
-      // insert control point into args of what was an svg t command
-      if (origLC === 't') {
-        args = prevCP1q.concat(args);
-      }
-      // save control point of svg q command
-      prevCP1q = args.slice(0, 2);
-    } else if (origLC === 'a') {
-      // rX,ry rotation, arc, sweep, eX,eY
-      // arc ( x  y  radius  startAngle  endAngle  anticlockwise )
-      const obj = { index, arr: [], processed: false, replaced: false };
-      arcToLinesArgsArr.push([x, y, args, obj]);
+function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[], pathIndex: number): SvgCmdData {
+  if (i === 0) return dta;
+  const args = dta.args as number[];
+  const lowerCaseSvgCmd = (dta.original as string).toLowerCase();
+  const prevCmd = arr[i - 1];
+  const prevX = prevCmd.args[prevCmd.args.length - 1] as number;
+  const prevY = prevCmd.args[prevCmd.args.length - 2] as number;
+  //
+  switch (lowerCaseSvgCmd) {
+    case 'h':
+      // add y
+      args.push(prevX);
+      break;
+
+    case 'v':
+      // add x
+      args.unshift(prevY);
+      break;
+
+    case 's' || 't':
+      // add last control point from previous cmd as first control point of current cmd
+      args.unshift(prevCmd.args[2] as number, prevCmd.args[3] as number);
+      break;
+
+    case 'a':
+      const obj = { index: pathIndex, arr: [], processed: false, replaced: false };
+      arcToLinesArgsArr.push([prevX, prevX, args, obj]);
       arcReplace.curIndex++;
       arcReplace.arr.push(obj);
-    }
-    cmdData.args = args;
-    index++;
+      break;
+
+    default:
+      break;
   }
-  return cmdArr;
-};
+  return Object.assign(dta, { args });
+}
+
+export default function convertArgs(cmdArr: SvgCmdData[], index: number): ConvertArgsData {
+  x = 0;
+  y = 0;
+  arcToLinesArgsArr = [];
+  arcReplace = { curIndex: -1, complete: false, arr: [] };
+  let newCmdArr = cmdArr.map(argsToNumArray).map(makeArgsAbsolute);
+  for (let i = 0; i < newCmdArr.length; i++) {
+    makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
+  }
+  newCmdArr = newCmdArr.map((cmd, i, arr) => addMissingArgs(cmd, i, arr, index));
+  console.log(newCmdArr);
+  return { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace };
+}

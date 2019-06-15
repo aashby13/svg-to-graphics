@@ -34,7 +34,10 @@ function build(obj: CommandArrayObj): CommandObj[] {
     }
   }
 
-  return cmdArr;
+  return cmdArr.map(obj => {
+    obj.args = obj.args.trim();
+    return obj;
+  });
 };
 
 export default function buildCommandArray(path: string): CommandObj[] {

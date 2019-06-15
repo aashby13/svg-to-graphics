@@ -1,5 +1,4 @@
 /// <reference path="../node_modules/@types/easeljs/index.d.ts" />
-/* import 'easeljs'; */
 import convert from './src/convert';
 import drawPath from './src/draw-path';
 

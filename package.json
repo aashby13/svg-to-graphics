@@ -29,7 +29,5 @@
     "@types/easeljs": "^1.0.0",
     "typescript": "^3.5.2"
   },
-  "dependencies": {
-    "easeljs": "^1.0.2"
-  }
+  "dependencies": {}
 }
