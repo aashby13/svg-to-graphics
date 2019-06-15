@@ -1,0 +1,35 @@
+{
+  "name": "svg-to-graphics",
+  "version": "0.1.0",
+  "description": "Utility to convert SVG path(s) to EasleJS Graphics",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aashby13/svg-to-graphics.git"
+  },
+  "keywords": [
+    "svg",
+    "createjs",
+    "easeljs",
+    "canvas",
+    "vector"
+  ],
+  "author": "Adam Ashby <dev@adamashby.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/aashby13/svg-to-graphics/issues"
+  },
+  "homepage": "https://github.com/aashby13/svg-to-graphics#readme",
+  "devDependencies": {
+    "@types/easeljs": "^1.0.0",
+    "typescript": "^3.5.2"
+  },
+  "dependencies": {
+    "easeljs": "^1.0.2"
+  }
+}
