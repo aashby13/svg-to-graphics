@@ -18,7 +18,7 @@ function createTempElements(startX: number, startY: number, args: number[]) {
   tempPath.setAttributeNS(null, 'd', `M${startX} ${startY} A${args.join(' ')}`);
   tempPath.setAttributeNS(null, 'fill', 'none');
   tempPath.setAttributeNS(null, 'stroke', color);
-  tempPath.setAttributeNS(null, 'stroke-width', '1.5');
+  tempPath.setAttributeNS(null, 'stroke-width', '1');
   tempSVG.appendChild(tempPath);
   document.body.appendChild(tempSVG);
   bbox = tempPath.getBBox();
@@ -41,8 +41,6 @@ function traceImage(img: HTMLImageElement, arcReplaceObj: ArcReplaceObj) {
   ctx.drawImage(img, 0, 0);
   const image = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
   const imgData = image.data;
-  document.body.removeChild(tempCanvas);
-  (tempCanvas as any) = null;
   //
   for (let n = 0, len = imgData.length; n < len; n += 4) {
     if (imgData[n + 3] >= 200) {
@@ -89,12 +87,14 @@ export default function arcToLines(startX: number, startY: number, args: number[
   const svgUrl = new XMLSerializer().serializeToString(tempSVG);
   const img = new Image();
   img.src = 'data:image/svg+xml; charset=utf8, ' + encodeURIComponent(svgUrl);
-  /* document.body.removeChild(tempSVG); */
-  (tempSVG as any) = null;
+  document.body.removeChild(tempSVG);
+  (tempSVG as any) = undefined;
   //
   return new Promise((resolve, reject) => {
     img.onload = () => {
       traceImage(img, arcReplaceObj);
+      document.body.removeChild(tempCanvas);
+      (tempCanvas as any) = undefined;
       sortAndBuidCommands(startX, startY, arcReplaceObj);
       (endX as any) = undefined;
       (endY as any) = undefined;
