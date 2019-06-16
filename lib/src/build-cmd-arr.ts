@@ -1,8 +1,8 @@
-import { CommandArrayObj, CommandObj, CommandMap } from './svg-to-graphics-types';
+import { CommandArrayObj, CommandMap, SvgCmdData } from './svg-to-graphics-types';
 import { map as cmdMap } from './command-map';
 
-function build(obj: CommandArrayObj): CommandObj[] {
-  const cmdArr: CommandObj[] = obj.array;
+function build(obj: CommandArrayObj): SvgCmdData[] {
+  const cmdArr: SvgCmdData[] = obj.array;
   let path: string = obj.path;
   let cmdIndex = obj.startIndex || obj.startIndex === 0 ? obj.startIndex : -1;
   let cmdStart = false;
@@ -35,11 +35,11 @@ function build(obj: CommandArrayObj): CommandObj[] {
   }
 
   return cmdArr.map(obj => {
-    obj.args = obj.args.trim();
+    obj.args = (obj.args as string).trim();
     return obj;
   });
 };
 
-export default function buildCommandArray(path: string): CommandObj[] {
+export default function buildCommandArray(path: string): SvgCmdData[] {
   return build({ array: [], path })
 }
