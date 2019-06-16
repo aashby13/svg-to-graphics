@@ -15,6 +15,7 @@
   "keywords": [
     "svg",
     "createjs",
+    "createjs.Graphics",
     "easeljs",
     "canvas",
     "vector"
