@@ -12,7 +12,7 @@ const removeBlanks = (str: string) => str !== '';
 
 function argsToNumArray(dta: SvgCmdData): SvgCmdData {
   const args = (dta.args as string).split(' ').filter(removeBlanks).map((arg: string) => parseFloat(arg));
-  return Object.assign(dta, {args});
+  return Object.assign({}, dta, {args});
 }
 
 /*
@@ -22,22 +22,25 @@ function argsToNumArray(dta: SvgCmdData): SvgCmdData {
     Must be used in for loop (not forEach) in order to splice array being looped.
 */
 function makeCommandsFromLongArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]) {
-  const args = dta.args as number[];
+  const args = dta.longArgs || dta.args as number[];
   const lowerCaseSvgCmd = (dta.original as string).toLowerCase();
   const origArgsLength = cmdMap[lowerCaseSvgCmd as keyof CommandMap].origArgsLength;
   //
   if (args.length > origArgsLength) {
-    console.log('too long');
-    args.splice(0, origArgsLength);
+    /* console.log('too long', args.length); */
+    const newArgs = args.splice(0, origArgsLength);
+    /* console.log('aftersplice', args); */
     const newCmd = {
       cmd: dta.cmd,
-      args,
+      args: newArgs,
       original: dta.original,
       relative: dta.relative,
+      longArgs: args.slice(),
       // add index for debug purposes
-      index: i + 1
+      index: i
     };
-    arr.splice(i + 1, 0, newCmd);
+    /* console.log(newCmd); */
+    arr.splice(i, 0, newCmd);
   }
 }
 
@@ -66,16 +69,16 @@ function makeArgsAbsolute(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmd
     y = newArgs[newArgs.length - 1];
   }
   //
-  return Object.assign(dta, { args: newArgs });
+  return Object.assign({}, dta, { args: newArgs });
 }
 
-function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[], pathIndex: number): SvgCmdData {
+function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdData {
   if (i === 0) return dta;
   const args = dta.args as number[];
   const lowerCaseSvgCmd = (dta.original as string).toLowerCase();
   const prevCmd = arr[i - 1];
-  const prevX = prevCmd.args[prevCmd.args.length - 1] as number;
-  const prevY = prevCmd.args[prevCmd.args.length - 2] as number;
+  const prevX = prevCmd.args[prevCmd.args.length - 2] as number;
+  const prevY = prevCmd.args[prevCmd.args.length - 1] as number;
   //
   switch (lowerCaseSvgCmd) {
     case 'h':
@@ -94,7 +97,7 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[], pathIndex
       break;
 
     case 'a':
-      const obj = { index: pathIndex, arr: [], processed: false, replaced: false };
+      const obj = { index: i, arr: [], processed: false, replaced: false };
       arcToLinesArgsArr.push([prevX, prevX, args, obj]);
       arcReplace.curIndex++;
       arcReplace.arr.push(obj);
@@ -103,19 +106,18 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[], pathIndex
     default:
       break;
   }
-  return Object.assign(dta, { args });
+  return Object.assign({}, dta, { args });
 }
 
-export default function convertArgs(cmdArr: SvgCmdData[], index: number): ConvertArgsData {
+export default function convertArgs(cmdArr: SvgCmdData[]): ConvertArgsData {
   x = 0;
   y = 0;
   arcToLinesArgsArr = [];
   arcReplace = { curIndex: -1, complete: false, arr: [] };
-  let newCmdArr = cmdArr.map(argsToNumArray).map(makeArgsAbsolute);
+  let newCmdArr = cmdArr.map(argsToNumArray);
   for (let i = 0; i < newCmdArr.length; i++) {
     makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
   }
-  newCmdArr = newCmdArr.map((cmd, i, arr) => addMissingArgs(cmd, i, arr, index));
-  console.log(newCmdArr);
+  newCmdArr = newCmdArr.map((cmd, i, arr) => addMissingArgs(cmd, i, arr)).map(makeArgsAbsolute);
   return { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace };
 }

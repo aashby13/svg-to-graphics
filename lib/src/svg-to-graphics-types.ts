@@ -1,9 +1,10 @@
 export interface SvgCmdData {
   cmd: string;
   args: string | string[] | number[];
+  longArgs?: number[];
   original?: string;
   relative?: boolean;
-  arcPoint?: number;
+  arcPoint?: boolean;
 }
 
 export interface SvgConvertData {
@@ -36,29 +37,29 @@ export interface CommandMap {
 }
 
 export interface CommandArrayObj {
-  array: CommandObj[];
+  array: SvgCmdData[];
   path: string;
   startIndex?: number;
 }
 
-export interface CommandObj {
-  cmd: string;
-  args: string;
-  original: string;
-  relative: boolean;
+export interface ArcReplaceObj {
+  index: number;
+  arr: SvgCmdData[];
+  processed: boolean;
+  replaced: boolean;
 }
 
 export interface ArcReplace {
   curIndex: number;
   complete: boolean;
-  arr: any[];
+  arr: ArcReplaceObj[];
 }
 
 export interface ArcToLineArgs extends Array<any> {
   0: number;
   1: number;
   2: number[];
-  3: { index: number, arr: any[], processed: boolean, replaced: boolean };
+  3: ArcReplaceObj;
 }
 
 export interface ConvertArgsData {
