@@ -42,7 +42,7 @@ export default function convert(pathData: string | string[], graphics?: createjs
       const results = drawPath(cmdArr, graphics, arcThresh);
       const returnData = {
         text: response as string,
-        graphic: results[0],
+        graphics: results[0],
         instructions: results[1]
       };
       resolve(returnData as SvgConvertData);

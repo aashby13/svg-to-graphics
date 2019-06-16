@@ -44,7 +44,7 @@ function convert(pathData, graphics, arcThresh) {
             const results = draw_path_1.default(cmdArr, graphics, arcThresh);
             const returnData = {
                 text: response,
-                graphic: results[0],
+                graphics: results[0],
                 instructions: results[1]
             };
             resolve(returnData);

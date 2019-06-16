@@ -9,7 +9,7 @@ export interface SvgCmdData {
 
 export interface SvgConvertData {
   text: string;
-  graphic: createjs.Graphics;
+  graphics: createjs.Graphics;
   instructions: SvgCmdData[];
 }
 
