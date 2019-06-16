@@ -1,6 +1,8 @@
-import { ArcReplace, SvgCmdData, ArcToLineArgs } from './svg-to-graphics-types';
+import { ArcReplace, SvgCmdData, ArcToLineArgs, SvgConvertData } from './svg-to-graphics-types';
 import buildCommandArray from './build-cmd-arr';
 import convertArgs from './convert-args';
+import drawPath from './draw-path';
+import processArcs from './process-arcs';
 
 /* 
   cleanPath():
@@ -28,24 +30,24 @@ export default function convert(pathData: string | string[], graphics?: createjs
   pathArr.forEach(path => {
     const arr = buildCommandArray(path);
     console.log(arr);
-    const convertedData = convertArgs(arr, cmdArr.length > 0 ? cmdArr.length - 1 : 0);
+    const convertedData = convertArgs(arr);
     const newArcReplaceArr = arcReplace.arr.concat(convertedData.arcReplace.arr);
     cmdArr = cmdArr.concat(convertedData.cmdArr);
     arcToLinesArgsArr = arcToLinesArgsArr.concat(convertedData.arcToLinesArgsArr);
     arcReplace = Object.assign(arcReplace, convertedData.arcReplace, { arr: newArcReplaceArr });
   })
 
-  /* return new Promise((resolve, reject) => {
-    processArcs(arcToLinesArgsArr, cmdArr, arcReplace).then((response) => {
-      const results = this.drawPath(cmdArr, graphics);
+  return new Promise((resolve, reject) => {
+    processArcs(arcToLinesArgsArr, cmdArr, arcReplace).then(response => {
+      const results = drawPath(cmdArr, graphics);
       const returnData = {
         text: response as string,
         graphic: results[0],
         instructions: results[1]
       };
       resolve(returnData as SvgConvertData);
-    }, (error) => {
+    }, (error: Error) => {
       reject(error);
     });
-  }); */
+  });
 }
