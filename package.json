@@ -1,6 +1,6 @@
 {
   "name": "svg-to-graphics",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Utility to convert SVG path(s) to EasleJS Graphics",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

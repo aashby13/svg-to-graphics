@@ -98,7 +98,7 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdDa
 
     case 'a':
       const obj = { index: i, arr: [], processed: false, replaced: false };
-      arcToLinesArgsArr.push([prevX, prevX, args, obj]);
+      arcToLinesArgsArr.push([prevX, prevY, args, obj]);
       arcReplace.curIndex++;
       arcReplace.arr.push(obj);
       break;
@@ -118,6 +118,6 @@ export default function convertArgs(cmdArr: SvgCmdData[]): ConvertArgsData {
   for (let i = 0; i < newCmdArr.length; i++) {
     makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
   }
-  newCmdArr = newCmdArr.map((cmd, i, arr) => addMissingArgs(cmd, i, arr)).map(makeArgsAbsolute);
+  newCmdArr = newCmdArr.map(makeArgsAbsolute).map((cmd, i, arr) => addMissingArgs(cmd, i, arr))
   return { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace };
 }

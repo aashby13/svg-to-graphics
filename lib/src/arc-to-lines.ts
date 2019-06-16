@@ -81,7 +81,7 @@ function sortAndBuidCommands(startX: number, startY: number, arcReplaceObj: ArcR
   newArr.push({ cmd: 'lt', args: [endX, endY] });
   arcReplaceObj.arr = newArr;
   arcReplaceObj.processed = true;
-  console.log('complete', arcReplaceObj.arr);
+  /* console.log('complete', arcReplaceObj.arr); */
 }
 
 export default function arcToLines(startX: number, startY: number, args: number[], arcReplaceObj: ArcReplaceObj): Promise<ArcReplaceObj> {

@@ -4,7 +4,7 @@ import arcToLines from './arc-to-lines';
 function replaceArc(cmdArr: SvgCmdData[], arcReplace: ArcReplace) {
   let addToIndex = 0;
   arcReplace.arr.forEach(dta => {
-    console.log(dta);
+    /* console.log(dta); */
     const index = dta.index + addToIndex;
     const arr = dta.arr;
     cmdArr.splice(index, 1);
