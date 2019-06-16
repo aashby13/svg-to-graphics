@@ -15,7 +15,7 @@ function cleanPath(path: string): string {
   return path.replace(/[\n\r\t]/g, '').replace(/,/g, ' ').replace(/-/g, ' -').replace(/'-.'/g, '-0.').trim();
 }
 
-export default function convert(pathData: string | string[], graphics?: createjs.Graphics)/* : Promise<SvgConvertData> */ {
+export default function convert(pathData: string | string[], graphics?: createjs.Graphics, arcThresh?: number): Promise<SvgConvertData> {
   let cmdArr: SvgCmdData[] = [];
   let arcToLinesArgsArr: ArcToLineArgs[] = [];
   let arcReplace: ArcReplace = { curIndex: -1, complete: false, arr: [] };
@@ -39,7 +39,7 @@ export default function convert(pathData: string | string[], graphics?: createjs
 
   return new Promise((resolve, reject) => {
     processArcs(arcToLinesArgsArr, cmdArr, arcReplace).then(response => {
-      const results = drawPath(cmdArr, graphics);
+      const results = drawPath(cmdArr, graphics, arcThresh);
       const returnData = {
         text: response as string,
         graphic: results[0],

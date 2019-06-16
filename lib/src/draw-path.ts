@@ -1,6 +1,6 @@
 import { SvgCmdData, DrawPathReturnedData } from './svg-to-graphics-types';
 
-export default function drawPath(cmdArr: SvgCmdData[], graphics?: createjs.Graphics): DrawPathReturnedData {
+export default function drawPath(cmdArr: SvgCmdData[], graphics?: createjs.Graphics, arcThresh: number = 5): DrawPathReturnedData {
   const gfx = graphics || new createjs.Graphics();
   const usedCmds: SvgCmdData[] = [];
   let d: number;
@@ -12,8 +12,8 @@ export default function drawPath(cmdArr: SvgCmdData[], graphics?: createjs.Graph
     if (cmd.arcPoint) {
       d = Math.sqrt(Math.pow(cmd.args[0] as number - x, 2) + Math.pow(cmd.args[1] as number - y, 2));
     }
-    // reduce points if less than 5px apart. traced arc adds alot of points
-    if (d > 5) {
+    // reduce points if less than 5px apart (or user set arcThresh). traced arc adds alot of points
+    if (d > arcThresh) {
       const command = cmd.cmd as keyof createjs.Graphics;
       (gfx[command] as any).apply(gfx, cmd.args);
       x = cmd.args[0] as number;
