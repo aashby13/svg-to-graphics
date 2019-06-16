@@ -7,7 +7,7 @@ let tempCanvas: HTMLCanvasElement;
 let tempSVG: SVGElement;
 let endX: number;
 let endY: number;
-let bbox: DOMRect;
+let bbox: SVGRect;
 
 function createTempElements(startX: number, startY: number, args: number[]) {
   endX = args[args.length - 2];
