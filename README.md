@@ -39,7 +39,7 @@ SvgToGraphics.convert([
   document.querySelector('#some-path-id').getAttribute('d'),
   document.querySelector('#another-path-id').getAttribute('d')
 ],
-  new createjs.Graphics().s('#FFF')
+  new createjs.Graphics().f('#FFF')
 ).then( response => {
   // handle response
   const vectorMask = new createjs.Shape(response.graphics);
