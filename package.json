@@ -14,9 +14,10 @@
   },
   "keywords": [
     "svg",
+    "easeljs",
     "createjs",
     "createjs.Graphics",
-    "easeljs",
+    "graphics",
     "canvas",
     "vector"
   ],
