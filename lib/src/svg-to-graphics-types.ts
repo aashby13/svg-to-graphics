@@ -5,6 +5,7 @@ export interface SvgCmdData {
   original?: string;
   relative?: boolean;
   arcPoint?: boolean;
+  index?: number;
 }
 
 export interface SvgConvertData {
