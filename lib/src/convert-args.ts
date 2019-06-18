@@ -59,8 +59,10 @@ function makeCommandsFromLongArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[])
 }
 
 function makeArgsAbsolute(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdData {
+  const origLC = (dta.original as string).toLowerCase();
   let args = dta.args as number[];
-  const isArc = dta.original === 'a' || dta.original === 'A';
+  let prevX = x
+  let prevY = y;
   // reset current xy values if args values are already absolute
   if (!dta.relative) {
     x = 0;
@@ -69,19 +71,41 @@ function makeArgsAbsolute(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmd
   console.log(x, y);
   // map args to absolute values
   const newArgs = args.map((val: number, idx: number) => {
-    let dif = idx % 2 === 0 ? x : y;
-    if (isArc) {
-      // dont add dif to index 2,3, & 4 of arc args. they are not xy values
-      if (idx === 2 || idx === 3 || idx === 4 ) dif = 0;
-      // svg arc has 7 values so flip even/odd logic to properly set xy values of end point
-      else if (idx > 4) dif = idx % 2 === 0 ? y : x;
+    let dif = 0;
+    switch (origLC) {
+      case 'a':
+        // dont add dif to index 2,3, & 4 of arc args. they are not xy values
+        if (idx === 2 || idx === 3 || idx === 4) dif = 0;
+        // svg arc has 7 values so flip even/odd logic to properly set xy values of end point
+        else if (idx > 4) dif = idx % 2 === 0 ? y : x;
+        break;
+
+      case 'h':
+        dif = x;
+        break
+
+      case 'v':
+        dif = y;
+        break
+
+      default:
+        dif = idx % 2 === 0 ? x : y;
+        break;
     }
     return toOneDec(val + dif);
   });
   // update current xy values
-  if (newArgs.length >= 2) {
+  if (newArgs.length > 1) {
     x = newArgs[newArgs.length - 2];
     y = newArgs[newArgs.length - 1];
+  } else if (newArgs.length === 1) {
+    if (origLC === 'h') {
+      x = newArgs[0];
+      y = prevY;
+    } else if (origLC === 'v') {
+      y = newArgs[0];
+      x = prevX;
+    }
   }
   //
   return Object.assign({}, dta, { args: newArgs });
@@ -94,17 +118,17 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdDa
   const prevCmd = arr[i - 1];
   const prevX = prevCmd.args[prevCmd.args.length - 2] as number;
   const prevY = prevCmd.args[prevCmd.args.length - 1] as number;
-  /* console.log(i, 'prevX', prevX, 'prevY', prevY); */
+  console.log(i, 'prevX', prevX, 'prevY', prevY);
   //
   switch (lowerCaseSvgCmd) {
     case 'h':
       // add y
-      args.push(prevX);
+      args.push(prevY);
       break;
 
     case 'v':
       // add x
-      args.unshift(prevY);
+      args.unshift(prevX);
       break;
 
     case 's' || 't':
@@ -135,6 +159,6 @@ export default function convertArgs(cmdArr: SvgCmdData[]): ConvertArgsData {
     makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
   }
   newCmdArr = newCmdArr.map(makeArgsAbsolute).map((cmd, i, arr) => addMissingArgs(cmd, i, arr));
-  console.log(newCmdArr);
+  console.log(newCmdArr, arcToLinesArgsArr, arcReplace );
   return { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace };
 }
