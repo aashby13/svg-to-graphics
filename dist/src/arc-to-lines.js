@@ -32,6 +32,7 @@ function createTempElements(startX, startY, args) {
 }
 function traceImage(img, arcReplaceObj) {
     let x = 0, y = 0, pointIndex = -1;
+    console.log(tempCanvas);
     const ctx = tempCanvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
     const image = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);

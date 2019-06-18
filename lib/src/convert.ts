@@ -12,7 +12,7 @@ import processArcs from './process-arcs';
     make sure negative numbers less than 1 have a 0 in front: ie -.3 to -0.3
 */
 function cleanPath(path: string): string {
-  return path.replace(/[\n\r\t]/g, '').replace(/,/g, ' ').replace(/-/g, ' -').replace(/'-.'/g, '-0.').trim();
+  return path.replace(/[\n\r\t]/g, '').replace(/,/g, ' ').replace(/-/g, ' -')/* .replace(/-./g, '-0.') */.trim();
 }
 
 export default function convert(pathData: string | string[], graphics?: createjs.Graphics, arcThresh?: number): Promise<SvgConvertData> {

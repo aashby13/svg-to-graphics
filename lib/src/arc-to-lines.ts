@@ -3,17 +3,14 @@ import { ArcReplaceObj, SvgCmdData } from "./svg-to-graphics-types";
 const svgNS = 'http://www.w3.org/2000/svg';
 const extra = 10;
 const color = 'rgb(0,0,0)';
-let tempCanvas: HTMLCanvasElement;
-let tempSVG: SVGElement;
+/* let tempCanvas: HTMLCanvasElement;
+let tempSVG: SVGElement; */
 let endX: number;
 let endY: number;
 let bbox: SVGRect;
 
-function createTempElements(startX: number, startY: number, args: number[]) {
-  endX = args[args.length - 2];
-  endY = args[args.length - 1];
-  tempCanvas = document.createElement('canvas');
-  tempSVG = document.createElementNS(svgNS, 'svg');
+function getSvgAsImage(startX: number, startY: number, args: number[]): HTMLImageElement {
+  const tempSVG = document.createElementNS(svgNS, 'svg');
   const tempPath = document.createElementNS(svgNS, 'path');
   tempPath.setAttributeNS(null, 'd', `M${startX} ${startY} A${args.join(' ')}`);
   tempPath.setAttributeNS(null, 'fill', 'none');
@@ -30,13 +27,21 @@ function createTempElements(startX: number, startY: number, args: number[]) {
   }
   tempSVG.setAttributeNS(null, 'width', (bbox.width + (bbox.x > 0 ? bbox.x : 0) + extra).toString());
   tempSVG.setAttributeNS(null, 'height', (bbox.height + (bbox.y > 0 ? bbox.y : 0) + extra).toString());
-  tempCanvas.setAttribute('width', (bbox.width + (bbox.x > 0 ? bbox.x : 0) + extra).toString());
-  tempCanvas.setAttribute('height', (bbox.height + (bbox.y > 0 ? bbox.y : 0) + extra).toString());
-  document.body.appendChild(tempCanvas);
+  //
+  const svgUrl = new XMLSerializer().serializeToString(tempSVG);
+  const img = new Image();
+  img.src = 'data:image/svg+xml; charset=utf8, ' + encodeURIComponent(svgUrl);
+  document.body.removeChild(tempSVG);
+  return img;
 }
 
 function traceImage(img: HTMLImageElement, arcReplaceObj: ArcReplaceObj) {
   let x = 0, y = 0, pointIndex = -1;
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.setAttribute('width', (bbox.width + (bbox.x > 0 ? bbox.x : 0) + extra).toString());
+  tempCanvas.setAttribute('height', (bbox.height + (bbox.y > 0 ? bbox.y : 0) + extra).toString());
+  document.body.appendChild(tempCanvas);
+  //
   const ctx = tempCanvas.getContext('2d') as CanvasRenderingContext2D;
   ctx.drawImage(img, 0, 0);
   const image = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
@@ -57,6 +62,7 @@ function traceImage(img: HTMLImageElement, arcReplaceObj: ArcReplaceObj) {
       x = 0;
     }
   }
+  document.body.removeChild(tempCanvas);
 }
 
 function sortAndBuidCommands(startX: number, startY: number, arcReplaceObj: ArcReplaceObj) {
@@ -83,22 +89,17 @@ function sortAndBuidCommands(startX: number, startY: number, arcReplaceObj: ArcR
 }
 
 export default function arcToLines(startX: number, startY: number, args: number[], arcReplaceObj: ArcReplaceObj): Promise<ArcReplaceObj> {
-  createTempElements(startX, startY, args);
-  const svgUrl = new XMLSerializer().serializeToString(tempSVG);
-  const img = new Image();
-  img.src = 'data:image/svg+xml; charset=utf8, ' + encodeURIComponent(svgUrl);
-  document.body.removeChild(tempSVG);
-  (tempSVG as any) = undefined;
+  endX = args[args.length - 2];
+  endY = args[args.length - 1];
+  const img = getSvgAsImage(startX, startY, args);
   //
   return new Promise((resolve, reject) => {
     img.onload = () => {
       traceImage(img, arcReplaceObj);
-      document.body.removeChild(tempCanvas);
-      (tempCanvas as any) = undefined;
       sortAndBuidCommands(startX, startY, arcReplaceObj);
       (endX as any) = undefined;
       (endY as any) = undefined;
-      (bbox as any) = undefined;
+      /* (bbox as any) = undefined; */
       resolve(arcReplaceObj);
     }
     img.onerror = () => {

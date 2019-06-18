@@ -10,8 +10,22 @@ const toOneDec = (num: number) => Math.round(num * 10) / 10;
 
 const removeBlanks = (str: string) => str !== '';
 
+const breakupMultiDecimals = (str: string, i: number, arr: string[]) => {
+  if (!str) return;
+  /* console.log('breakupMultiDecimals str', str); */
+  const split = str.split('.');
+  if(split.length > 2) {
+  /* console.log('breakupMultiDecimals split', split); */
+    arr.splice(i, 1, split[0] + split[1], '0.' + split[3]);
+  }
+};
+
 function argsToNumArray(dta: SvgCmdData): SvgCmdData {
-  const args = (dta.args as string).split(' ').filter(removeBlanks).map((arg: string) => parseFloat(arg));
+  const split = (dta.args as string).split(' ').filter(removeBlanks);
+  for (let i = 0; i < split.length; i++) {
+    breakupMultiDecimals(split[i], i, split);
+  }
+  const args = split.map((arg: string) => parseFloat(arg));
   return Object.assign({}, dta, {args});
 }
 
@@ -52,6 +66,7 @@ function makeArgsAbsolute(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmd
     x = 0;
     y = 0;
   }
+  console.log(x, y);
   // map args to absolute values
   const newArgs = args.map((val: number, idx: number) => {
     let dif = idx % 2 === 0 ? x : y;
@@ -79,6 +94,7 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdDa
   const prevCmd = arr[i - 1];
   const prevX = prevCmd.args[prevCmd.args.length - 2] as number;
   const prevY = prevCmd.args[prevCmd.args.length - 1] as number;
+  /* console.log(i, 'prevX', prevX, 'prevY', prevY); */
   //
   switch (lowerCaseSvgCmd) {
     case 'h':
@@ -118,6 +134,7 @@ export default function convertArgs(cmdArr: SvgCmdData[]): ConvertArgsData {
   for (let i = 0; i < newCmdArr.length; i++) {
     makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
   }
-  newCmdArr = newCmdArr.map(makeArgsAbsolute).map((cmd, i, arr) => addMissingArgs(cmd, i, arr))
+  newCmdArr = newCmdArr.map(makeArgsAbsolute).map((cmd, i, arr) => addMissingArgs(cmd, i, arr));
+  console.log(newCmdArr);
   return { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace };
 }
