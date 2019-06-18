@@ -7,8 +7,22 @@ let arcToLinesArgsArr;
 let arcReplace;
 const toOneDec = (num) => Math.round(num * 10) / 10;
 const removeBlanks = (str) => str !== '';
+const breakupMultiDecimals = (str, i, arr) => {
+    if (!str)
+        return;
+    /* console.log('breakupMultiDecimals str', str); */
+    const split = str.split('.');
+    if (split.length > 2) {
+        /* console.log('breakupMultiDecimals split', split); */
+        arr.splice(i, 1, split[0] + split[1], '0.' + split[3]);
+    }
+};
 function argsToNumArray(dta) {
-    const args = dta.args.split(' ').filter(removeBlanks).map((arg) => parseFloat(arg));
+    const split = dta.args.split(' ').filter(removeBlanks);
+    for (let i = 0; i < split.length; i++) {
+        breakupMultiDecimals(split[i], i, split);
+    }
+    const args = split.map((arg) => parseFloat(arg));
     return Object.assign({}, dta, { args });
 }
 /*
@@ -40,30 +54,54 @@ function makeCommandsFromLongArgs(dta, i, arr) {
     }
 }
 function makeArgsAbsolute(dta, i, arr) {
+    const origLC = dta.original.toLowerCase();
     let args = dta.args;
-    const isArc = dta.original === 'a' || dta.original === 'A';
+    let prevX = x;
+    let prevY = y;
     // reset current xy values if args values are already absolute
     if (!dta.relative) {
         x = 0;
         y = 0;
     }
+    /* console.log(x, y); */
     // map args to absolute values
     const newArgs = args.map((val, idx) => {
-        let dif = idx % 2 === 0 ? x : y;
-        if (isArc) {
-            // dont add dif to index 2,3, & 4 of arc args. they are not xy values
-            if (idx === 2 || idx === 3 || idx === 4)
-                dif = 0;
-            // svg arc has 7 values so flip even/odd logic to properly set xy values of end point
-            else if (idx > 4)
-                dif = idx % 2 === 0 ? y : x;
+        let dif = 0;
+        switch (origLC) {
+            case 'a':
+                // dont add dif to index 2,3, & 4 of arc args. they are not xy values
+                if (idx === 2 || idx === 3 || idx === 4)
+                    dif = 0;
+                // svg arc has 7 values so flip even/odd logic to properly set xy values of end point
+                else if (idx > 4)
+                    dif = idx % 2 === 0 ? y : x;
+                break;
+            case 'h':
+                dif = x;
+                break;
+            case 'v':
+                dif = y;
+                break;
+            default:
+                dif = idx % 2 === 0 ? x : y;
+                break;
         }
         return toOneDec(val + dif);
     });
     // update current xy values
-    if (newArgs.length >= 2) {
+    if (newArgs.length > 1) {
         x = newArgs[newArgs.length - 2];
         y = newArgs[newArgs.length - 1];
+    }
+    else if (newArgs.length === 1) {
+        if (origLC === 'h') {
+            x = newArgs[0];
+            y = prevY;
+        }
+        else if (origLC === 'v') {
+            y = newArgs[0];
+            x = prevX;
+        }
     }
     //
     return Object.assign({}, dta, { args: newArgs });
@@ -76,15 +114,16 @@ function addMissingArgs(dta, i, arr) {
     const prevCmd = arr[i - 1];
     const prevX = prevCmd.args[prevCmd.args.length - 2];
     const prevY = prevCmd.args[prevCmd.args.length - 1];
+    /* console.log(i, 'prevX', prevX, 'prevY', prevY); */
     //
     switch (lowerCaseSvgCmd) {
         case 'h':
             // add y
-            args.push(prevX);
+            args.push(prevY);
             break;
         case 'v':
             // add x
-            args.unshift(prevY);
+            args.unshift(prevX);
             break;
         case 's' || 't':
             // add last control point from previous cmd as first control point of current cmd
@@ -111,6 +150,7 @@ function convertArgs(cmdArr) {
         makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
     }
     newCmdArr = newCmdArr.map(makeArgsAbsolute).map((cmd, i, arr) => addMissingArgs(cmd, i, arr));
-    return { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace };
+    /* console.log(newCmdArr, arcToLinesArgsArr, arcReplace ); */
+    return Object.assign({}, { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace });
 }
 exports.default = convertArgs;
