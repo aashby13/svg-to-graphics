@@ -22,7 +22,8 @@ export default function processArcs(arcToLinesArgsArr: ArcToLineArgs[], cmdArr: 
       resolve('success');
     }
     arcToLinesArgsArr.forEach( atl => {
-      arcToLines(atl[0], atl[1], atl[2], atl[3]).then((response: ArcReplaceObj) => {
+      /* console.log('arcToLinesArgsArr.forEach', atl); */
+      arcToLines(atl[0], atl[1], atl[2], atl[3], atl[4]).then((response: ArcReplaceObj) => {
         if (response.processed) {
           replaceArc(cmdArr, arcReplace);
           arcReplace.complete = true;

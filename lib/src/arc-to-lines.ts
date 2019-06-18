@@ -9,10 +9,10 @@ let endX: number;
 let endY: number;
 let bbox: SVGRect;
 
-function getSvgAsImage(startX: number, startY: number, args: number[]): HTMLImageElement {
+function getSvgAsImage(cmd: string, startX: number, startY: number, args: number[]): HTMLImageElement {
   const tempSVG = document.createElementNS(svgNS, 'svg');
-  const tempPath = document.createElementNS(svgNS, 'path');
-  tempPath.setAttributeNS(null, 'd', `M${startX} ${startY} A${args.join(' ')}`);
+  const tempPath = document.createElementNS(svgNS, 'path'); console.log(args);
+  tempPath.setAttributeNS(null, 'd', `M${startX} ${startY} ${cmd}${args.join(' ')}`);
   tempPath.setAttributeNS(null, 'fill', 'none');
   tempPath.setAttributeNS(null, 'stroke', color);
   tempPath.setAttributeNS(null, 'stroke-width', '1');
@@ -82,24 +82,26 @@ function sortAndBuidCommands(startX: number, startY: number, arcReplaceObj: ArcR
     nX = newArr[newArr.length - 1].args[0] as number;
     nY = newArr[newArr.length - 1].args[1] as number;
   }
-  newArr.push({ cmd: 'lt', args: [endX, endY] });
+  /* newArr.push({ cmd: 'lt', args: [endX, endY] }); */
   arcReplaceObj.arr = newArr;
   arcReplaceObj.processed = true;
   /* console.log('complete', arcReplaceObj.arr); */
 }
 
-export default function arcToLines(startX: number, startY: number, args: number[], arcReplaceObj: ArcReplaceObj): Promise<ArcReplaceObj> {
+export default function arcToLines(cmd: string, startX: number, startY: number, args: number[], arcReplaceObj: ArcReplaceObj): Promise<ArcReplaceObj> {
   endX = args[args.length - 2];
   endY = args[args.length - 1];
-  const img = getSvgAsImage(startX, startY, args);
+  /* console.log(arguments); */
+  const img = getSvgAsImage(cmd, startX, startY, args);
   //
   return new Promise((resolve, reject) => {
     img.onload = () => {
       traceImage(img, arcReplaceObj);
       sortAndBuidCommands(startX, startY, arcReplaceObj);
-      (endX as any) = undefined;
-      (endY as any) = undefined;
+      /* (endX as any) = undefined;
+      (endY as any) = undefined; */
       /* (bbox as any) = undefined; */
+      console.log(arcReplaceObj);
       resolve(arcReplaceObj);
     }
     img.onerror = () => {
