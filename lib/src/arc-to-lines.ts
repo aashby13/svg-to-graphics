@@ -68,7 +68,6 @@ function sortAndBuidCommands(startX: number, startY: number, arcReplaceObj: ArcR
   let nY = startY;
   //
   while (newArr.length !== l) {
-    // console.log(nX,nY);
     arcReplaceObj.arr.sort((a, b) => {
       const d1 = Math.sqrt(Math.pow((a.args as number[])[0] - nX, 2) + Math.pow((a.args as number[])[1] - nY, 2));
       const d2 = Math.sqrt(Math.pow((b.args as number[])[0] - nX, 2) + Math.pow((b.args as number[])[1] - nY, 2));
@@ -78,14 +77,11 @@ function sortAndBuidCommands(startX: number, startY: number, arcReplaceObj: ArcR
     nX = newArr[newArr.length - 1].args[0] as number;
     nY = newArr[newArr.length - 1].args[1] as number;
   }
-  /* newArr.push({ cmd: 'lt', args: [endX, endY] }); */
   arcReplaceObj.arr = newArr;
   arcReplaceObj.processed = true;
-  /* console.log('complete', arcReplaceObj.arr); */
 }
 
 export default function arcToLines(cmd?: string, startX?: number, startY?: number, args?: number[], arcReplaceObj?: ArcReplaceObj): Promise<ArcReplaceObj> {
-  /* console.log('arcToLines begin'); */
   const img = getSvgAsImage(cmd as string, startX as number, startY as number, args as number[]);
   //
   return new Promise((resolve, reject) => {

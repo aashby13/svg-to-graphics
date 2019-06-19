@@ -62,7 +62,6 @@ function sortAndBuidCommands(startX, startY, arcReplaceObj) {
     let nY = startY;
     //
     while (newArr.length !== l) {
-        // console.log(nX,nY);
         arcReplaceObj.arr.sort((a, b) => {
             const d1 = Math.sqrt(Math.pow(a.args[0] - nX, 2) + Math.pow(a.args[1] - nY, 2));
             const d2 = Math.sqrt(Math.pow(b.args[0] - nX, 2) + Math.pow(b.args[1] - nY, 2));
@@ -72,13 +71,10 @@ function sortAndBuidCommands(startX, startY, arcReplaceObj) {
         nX = newArr[newArr.length - 1].args[0];
         nY = newArr[newArr.length - 1].args[1];
     }
-    /* newArr.push({ cmd: 'lt', args: [endX, endY] }); */
     arcReplaceObj.arr = newArr;
     arcReplaceObj.processed = true;
-    /* console.log('complete', arcReplaceObj.arr); */
 }
 function arcToLines(cmd, startX, startY, args, arcReplaceObj) {
-    /* console.log('arcToLines begin'); */
     const img = getSvgAsImage(cmd, startX, startY, args);
     //
     return new Promise((resolve, reject) => {

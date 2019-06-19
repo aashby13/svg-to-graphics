@@ -47,6 +47,7 @@ export interface ArcReplace {
     curIndex: number;
     complete: boolean;
     arr: ArcReplaceObj[];
+    fail?: boolean;
 }
 export interface ArcToLineArgs extends Array<any> {
     0: string;
