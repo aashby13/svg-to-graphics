@@ -3,15 +3,11 @@ import { ArcReplaceObj, SvgCmdData } from "./svg-to-graphics-types";
 const svgNS = 'http://www.w3.org/2000/svg';
 const extra = 10;
 const color = 'rgb(0,0,0)';
-/* let tempCanvas: HTMLCanvasElement;
-let tempSVG: SVGElement; */
-let endX: number;
-let endY: number;
 let bbox: SVGRect;
 
 function getSvgAsImage(cmd: string, startX: number, startY: number, args: number[]): HTMLImageElement {
   const tempSVG = document.createElementNS(svgNS, 'svg');
-  const tempPath = document.createElementNS(svgNS, 'path'); console.log(args);
+  const tempPath = document.createElementNS(svgNS, 'path');
   tempPath.setAttributeNS(null, 'd', `M${startX} ${startY} ${cmd}${args.join(' ')}`);
   tempPath.setAttributeNS(null, 'fill', 'none');
   tempPath.setAttributeNS(null, 'stroke', color);
@@ -88,20 +84,14 @@ function sortAndBuidCommands(startX: number, startY: number, arcReplaceObj: ArcR
   /* console.log('complete', arcReplaceObj.arr); */
 }
 
-export default function arcToLines(cmd: string, startX: number, startY: number, args: number[], arcReplaceObj: ArcReplaceObj): Promise<ArcReplaceObj> {
-  endX = args[args.length - 2];
-  endY = args[args.length - 1];
-  /* console.log(arguments); */
-  const img = getSvgAsImage(cmd, startX, startY, args);
+export default function arcToLines(cmd?: string, startX?: number, startY?: number, args?: number[], arcReplaceObj?: ArcReplaceObj): Promise<ArcReplaceObj> {
+  /* console.log('arcToLines begin'); */
+  const img = getSvgAsImage(cmd as string, startX as number, startY as number, args as number[]);
   //
   return new Promise((resolve, reject) => {
     img.onload = () => {
-      traceImage(img, arcReplaceObj);
-      sortAndBuidCommands(startX, startY, arcReplaceObj);
-      /* (endX as any) = undefined;
-      (endY as any) = undefined; */
-      /* (bbox as any) = undefined; */
-      console.log(arcReplaceObj);
+      traceImage(img, arcReplaceObj as ArcReplaceObj);
+      sortAndBuidCommands(startX as number, startY as number, arcReplaceObj as ArcReplaceObj);
       resolve(arcReplaceObj);
     }
     img.onerror = () => {

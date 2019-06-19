@@ -25,7 +25,7 @@ function argsToNumArray(dta: SvgCmdData): SvgCmdData {
   for (let i = 0; i < split.length; i++) {
     breakupMultiDecimals(split[i], i, split);
   }
-  const args = split.map((arg: string) => parseFloat(arg));
+  const args = split.map((arg: string) => parseFloat(arg)); console.log(args);
   return Object.assign({}, dta, {args});
 }
 
@@ -36,9 +36,9 @@ function argsToNumArray(dta: SvgCmdData): SvgCmdData {
     Must be used in for loop (not forEach) in order to splice array being looped.
 */
 function makeCommandsFromLongArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]) {
-  const args = dta.longArgs || dta.args as number[];
   const lowerCaseSvgCmd = (dta.original as string).toLowerCase();
   if (lowerCaseSvgCmd === 'a') return;
+  const args = dta.longArgs || dta.args as number[];
   const origArgsLength = cmdMap[lowerCaseSvgCmd as keyof CommandMap].origArgsLength;
   //
   if (args.length > origArgsLength) {
@@ -78,10 +78,7 @@ function makeArgsAbsolute(dta: SvgCmdData): SvgCmdData {
         // dont add dif to index 2,3, & 4 of arc args. they are not xy values
         /* if (idx === 2 || idx === 3 || idx === 4) dif = 0; */
         // svg arc has 7 values so flip even/odd logic to properly set xy values of end point
-        /* else  *//* if (idx > 4) dif = idx % 2 === 0 ? y : x; */
-        /* console.log(idx, idx / (arr.length / 7) % 7)
-        if ( idx == ((arr.length / 7) * 7 - 2)) dif = x;
-        if (idx == ((arr.length / 7) * 7 - 1)) dif = y; */
+        /* if (idx > 4) dif = idx % 2 === 0 ? y : x; */
         break;
 
       case 'h':
@@ -100,8 +97,13 @@ function makeArgsAbsolute(dta: SvgCmdData): SvgCmdData {
   });
   // update current xy values
   if (newArgs.length > 1) {
-    x = newArgs[newArgs.length - 2];
-    y = newArgs[newArgs.length - 1];
+    if (origLC === 'a') {
+      x = args[args.length -2] + (dta.relative ? x : 0);
+      y = args[args.length - 1] + (dta.relative ? y : 0);
+    } else {
+      x = newArgs[newArgs.length - 2];
+      y = newArgs[newArgs.length - 1];
+    }
   } else if (newArgs.length === 1) {
     if (origLC === 'h') {
       x = newArgs[0];
@@ -122,7 +124,7 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdDa
   const prevCmd = arr[i - 1];
   const prevX = prevCmd.args[prevCmd.args.length - 2] as number;
   const prevY = prevCmd.args[prevCmd.args.length - 1] as number;
-  console.log(i, 'prevX', prevX, 'prevY', prevY);
+  /* console.log(i, 'prevX', prevX, 'prevY', prevY); */
   //
   switch (lowerCaseSvgCmd) {
     case 'h':
@@ -142,7 +144,13 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdDa
 
     case 'a':
       const obj = { index: i, arr: [], processed: false, replaced: false };
-      arcToLinesArgsArr.push([dta.original as string, prevX, prevY, args, obj]);
+      arcToLinesArgsArr.push([
+        dta.original as string, 
+        prevX, 
+        prevY,
+        args, 
+        obj
+      ]);
       arcReplace.curIndex++;
       arcReplace.arr.push(obj);
       break;
@@ -162,6 +170,7 @@ export default function convertArgs(cmdArr: SvgCmdData[]): ConvertArgsData {
   for (let i = 0; i < newCmdArr.length; i++) {
     makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
   }
+  console.log(newCmdArr);
   newCmdArr = newCmdArr.map(makeArgsAbsolute).map((cmd, i, arr) => addMissingArgs(cmd, i, arr));
   /* console.log(newCmdArr, arcToLinesArgsArr, arcReplace ); */
   return Object.assign({}, { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace });
