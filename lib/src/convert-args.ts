@@ -25,7 +25,7 @@ function argsToNumArray(dta: SvgCmdData): SvgCmdData {
   for (let i = 0; i < split.length; i++) {
     breakupMultiDecimals(split[i], i, split);
   }
-  const args = split.map((arg: string) => parseFloat(arg)); console.log(args);
+  const args = split.map((arg: string) => parseFloat(arg));
   return Object.assign({}, dta, {args});
 }
 
@@ -170,7 +170,7 @@ export default function convertArgs(cmdArr: SvgCmdData[]): ConvertArgsData {
   for (let i = 0; i < newCmdArr.length; i++) {
     makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
   }
-  console.log(newCmdArr);
+  /* console.log(newCmdArr); */
   newCmdArr = newCmdArr.map(makeArgsAbsolute).map((cmd, i, arr) => addMissingArgs(cmd, i, arr));
   /* console.log(newCmdArr, arcToLinesArgsArr, arcReplace ); */
   return Object.assign({}, { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace });

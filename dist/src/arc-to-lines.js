@@ -3,15 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const svgNS = 'http://www.w3.org/2000/svg';
 const extra = 10;
 const color = 'rgb(0,0,0)';
-/* let tempCanvas: HTMLCanvasElement;
-let tempSVG: SVGElement; */
-let endX;
-let endY;
 let bbox;
-function getSvgAsImage(startX, startY, args) {
+function getSvgAsImage(cmd, startX, startY, args) {
     const tempSVG = document.createElementNS(svgNS, 'svg');
     const tempPath = document.createElementNS(svgNS, 'path');
-    tempPath.setAttributeNS(null, 'd', `M${startX} ${startY} A${args.join(' ')}`);
+    tempPath.setAttributeNS(null, 'd', `M${startX} ${startY} ${cmd}${args.join(' ')}`);
     tempPath.setAttributeNS(null, 'fill', 'none');
     tempPath.setAttributeNS(null, 'stroke', color);
     tempPath.setAttributeNS(null, 'stroke-width', '1');
@@ -76,23 +72,19 @@ function sortAndBuidCommands(startX, startY, arcReplaceObj) {
         nX = newArr[newArr.length - 1].args[0];
         nY = newArr[newArr.length - 1].args[1];
     }
-    newArr.push({ cmd: 'lt', args: [endX, endY] });
+    /* newArr.push({ cmd: 'lt', args: [endX, endY] }); */
     arcReplaceObj.arr = newArr;
     arcReplaceObj.processed = true;
     /* console.log('complete', arcReplaceObj.arr); */
 }
-function arcToLines(startX, startY, args, arcReplaceObj) {
-    endX = args[args.length - 2];
-    endY = args[args.length - 1];
-    const img = getSvgAsImage(startX, startY, args);
+function arcToLines(cmd, startX, startY, args, arcReplaceObj) {
+    /* console.log('arcToLines begin'); */
+    const img = getSvgAsImage(cmd, startX, startY, args);
     //
     return new Promise((resolve, reject) => {
         img.onload = () => {
             traceImage(img, arcReplaceObj);
             sortAndBuidCommands(startX, startY, arcReplaceObj);
-            endX = undefined;
-            endY = undefined;
-            /* (bbox as any) = undefined; */
             resolve(arcReplaceObj);
         };
         img.onerror = () => {

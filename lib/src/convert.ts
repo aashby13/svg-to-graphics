@@ -29,7 +29,6 @@ export default function convert(pathData: string | string[], graphics?: createjs
   // process path(s) to build cmdArr, arcToLinesArgsArr, & arcReplace
   pathArr.forEach(path => {
     const arr = buildCommandArray(path);
-    console.log(arr);
     const convertedData = convertArgs(arr);
     const newArcReplaceArr = arcReplace.arr.concat(convertedData.arcReplace.arr);
     cmdArr = cmdArr.concat(convertedData.cmdArr);

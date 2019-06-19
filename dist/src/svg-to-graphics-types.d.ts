@@ -49,10 +49,11 @@ export interface ArcReplace {
     arr: ArcReplaceObj[];
 }
 export interface ArcToLineArgs extends Array<any> {
-    0: number;
+    0: string;
     1: number;
-    2: number[];
-    3: ArcReplaceObj;
+    2: number;
+    3: number[];
+    4: ArcReplaceObj;
 }
 export interface ConvertArgsData {
     cmdArr: SvgCmdData[];
