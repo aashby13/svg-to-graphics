@@ -20,7 +20,7 @@ function process(arcToLinesArgsArr: ArcToLineArgs[], cmdArr: SvgCmdData[], arcRe
   if (arcToLinesArgsArr.length === 0){
     replaceArc(cmdArr, arcReplace);
   } else {
-    const atl = arcToLinesArgsArr.splice(0, 1)[0];
+    const atl = arcToLinesArgsArr.shift() as ArcToLineArgs;
     arcToLines(...atl).then(() => {
       processArcs(arcToLinesArgsArr, cmdArr, arcReplace);
     }, (error: Error) => {
