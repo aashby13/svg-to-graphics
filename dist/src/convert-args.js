@@ -12,11 +12,9 @@ const removeBlanks = (str) => str !== '';
 const breakupMultiDecimals = (str, i, arr) => {
     if (!str)
         return;
-    /* console.log('breakupMultiDecimals str', str); */
     const split = str.split('.');
     if (split.length > 2) {
-        /* console.log('breakupMultiDecimals split', split); */
-        arr.splice(i, 1, `${split[0]}.${split[1]}`, '0.' + split[3]);
+        arr.splice(i, 1, `${split[0]}.${split[1]}`, '0.' + split.slice(2));
     }
 };
 function argsToNumArray(dta) {
