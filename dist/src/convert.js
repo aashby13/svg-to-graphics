@@ -15,7 +15,7 @@ const process_arcs_1 = __importDefault(require("./process-arcs"));
     make sure negative numbers less than 1 have a 0 in front: ie -.3 to -0.3
 */
 function cleanPath(path) {
-    return path.replace(/[\n\r\t]/g, '').replace(/,/g, ' ').replace(/-/g, ' -').replace(/'-.'/g, '-0.').trim();
+    return path.replace(/[\n\r\t]/g, '').replace(/,/g, ' ').replace(/-/g, ' -').replace(/-\./g, '-0.').trim();
 }
 function convert(pathData, graphics, arcThresh) {
     let cmdArr = [];
@@ -38,6 +38,7 @@ function convert(pathData, graphics, arcThresh) {
         arcToLinesArgsArr = arcToLinesArgsArr.concat(convertedData.arcToLinesArgsArr);
         arcReplace = Object.assign(arcReplace, convertedData.arcReplace, { arr: newArcReplaceArr });
     });
+    //
     return new Promise((resolve, reject) => {
         process_arcs_1.default(arcToLinesArgsArr, cmdArr, arcReplace).then(response => {
             const results = draw_path_1.default(cmdArr, graphics, arcThresh);
