@@ -5,6 +5,8 @@ let x: number;
 let y: number;
 let arcToLinesArgsArr: ArcToLineArgs[];
 let arcReplace: ArcReplace;
+let prevQ: SvgCmdData;
+let prevC: SvgCmdData;
 
 const toOneDec = (num: number) => Math.round(num * 10) / 10;
 
@@ -16,7 +18,7 @@ const breakupMultiDecimals = (str: string, i: number, arr: string[]) => {
   const split = str.split('.');
   if(split.length > 2) {
   /* console.log('breakupMultiDecimals split', split); */
-    arr.splice(i, 1, split[0] + split[1], '0.' + split[3]);
+    arr.splice(i, 1, `${split[0]}.${split[1]}`, '0.' + split[3]);
   }
 };
 
@@ -75,10 +77,7 @@ function makeArgsAbsolute(dta: SvgCmdData): SvgCmdData {
     let dif = 0;
     switch (origLC) {
       case 'a':
-        // dont add dif to index 2,3, & 4 of arc args. they are not xy values
-        /* if (idx === 2 || idx === 3 || idx === 4) dif = 0; */
-        // svg arc has 7 values so flip even/odd logic to properly set xy values of end point
-        /* if (idx > 4) dif = idx % 2 === 0 ? y : x; */
+        dif = 0;
         break;
 
       case 'h':
@@ -96,6 +95,7 @@ function makeArgsAbsolute(dta: SvgCmdData): SvgCmdData {
     return toOneDec(val + dif);
   });
   // update current xy values
+  console.log(newArgs.length);
   if (newArgs.length > 1) {
     if (origLC === 'a') {
       x = args[args.length -2] + (dta.relative ? x : 0);
@@ -137,10 +137,25 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdDa
       args.unshift(prevX);
       break;
 
-    case 's' || 't':
-      // add last control point from previous cmd as first control point of current cmd
-      args.unshift(prevCmd.args[2] as number, prevCmd.args[3] as number);
+    case 's':
+      // add last control point from previous C or S cmd as first control point of current cmd
+      args.unshift(prevC.args[2] as number, prevC.args[3] as number);
+      prevC.args = args;
       break;
+
+    case 't':
+      // add last control point from previous Q or T cmd as first control point of current cmd
+      args.unshift(prevQ.args[2] as number, prevQ.args[3] as number);
+      prevQ.args = args;
+      break;  
+
+    case 'c':
+      prevC = dta;
+      break;
+
+    case 'q':
+      prevQ = dta;
+      break;  
 
     case 'a':
       const obj = { index: i, arr: [], processed: false, replaced: false };
@@ -170,8 +185,8 @@ export default function convertArgs(cmdArr: SvgCmdData[]): ConvertArgsData {
   for (let i = 0; i < newCmdArr.length; i++) {
     makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
   }
-  /* console.log(newCmdArr); */
-  newCmdArr = newCmdArr.map(makeArgsAbsolute).map((cmd, i, arr) => addMissingArgs(cmd, i, arr));
+  console.log(newCmdArr);
+  newCmdArr = newCmdArr.map(makeArgsAbsolute).map(addMissingArgs);
   /* console.log(newCmdArr, arcToLinesArgsArr, arcReplace ); */
   return Object.assign({}, { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace });
 }
