@@ -95,7 +95,6 @@ function makeArgsAbsolute(dta: SvgCmdData): SvgCmdData {
     return toOneDec(val + dif);
   });
   // update current xy values
-  console.log(newArgs.length);
   if (newArgs.length > 1) {
     if (origLC === 'a') {
       x = args[args.length -2] + (dta.relative ? x : 0);
@@ -138,14 +137,20 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdDa
       break;
 
     case 's':
-      // add last control point from previous C or S cmd as first control point of current cmd
-      args.unshift(prevC.args[2] as number, prevC.args[3] as number);
+      // calculate first control point from last S or C cmd
+      args.unshift(
+        2 * (prevC.args[4] as number) - (prevC.args[2] as number),
+        2 * (prevC.args[5] as number) - (prevC.args[3] as number)
+      );
       prevC.args = args;
       break;
 
     case 't':
-      // add last control point from previous Q or T cmd as first control point of current cmd
-      args.unshift(prevQ.args[2] as number, prevQ.args[3] as number);
+      // calculate first control point from last Q or T cmd
+      args.unshift(
+        2 * (prevQ.args[2] as number) - (prevQ.args[0] as number),
+        2 * (prevQ.args[3] as number) - (prevQ.args[1] as number)
+      );
       prevQ.args = args;
       break;  
 
@@ -185,8 +190,6 @@ export default function convertArgs(cmdArr: SvgCmdData[]): ConvertArgsData {
   for (let i = 0; i < newCmdArr.length; i++) {
     makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
   }
-  console.log(newCmdArr);
   newCmdArr = newCmdArr.map(makeArgsAbsolute).map(addMissingArgs);
-  /* console.log(newCmdArr, arcToLinesArgsArr, arcReplace ); */
   return Object.assign({}, { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace });
 }
