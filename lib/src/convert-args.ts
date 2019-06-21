@@ -5,8 +5,8 @@ let x: number;
 let y: number;
 let arcToLinesArgsArr: ArcToLineArgs[];
 let arcReplace: ArcReplace;
-let prevQ: SvgCmdData;
-let prevC: SvgCmdData;
+let prevQArgs: number[];
+let prevCArgs: number[];
 
 const toOneDec = (num: number) => Math.round(num * 10) / 10;
 
@@ -36,10 +36,10 @@ function argsToNumArray(dta: SvgCmdData): SvgCmdData {
     Must be used in for loop (not forEach) in order to splice array being looped.
 */
 function makeCommandsFromLongArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]) {
-  const lowerCaseSvgCmd = (dta.original as string).toLowerCase();
-  if (lowerCaseSvgCmd === 'a') return;
+  const origLC = (dta.original as string).toLowerCase();
+  if (origLC === 'a') return;
   const args = dta.longArgs || dta.args as number[];
-  const origArgsLength = cmdMap[lowerCaseSvgCmd as keyof CommandMap].origArgsLength;
+  const origArgsLength = cmdMap[origLC as keyof CommandMap].origArgsLength;
   //
   if (args.length > origArgsLength) {
     /* console.log('too long', args.length); */
@@ -114,16 +114,34 @@ function makeArgsAbsolute(dta: SvgCmdData): SvgCmdData {
   return Object.assign({}, dta, { args: newArgs });
 }
 
-function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdData {
+// startIndex is for making sure arcs are put in the right place when more than 1 path is being drawn
+function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[], startIndex: number): SvgCmdData {
   if (i === 0) return dta;
   const args = dta.args as number[];
-  const lowerCaseSvgCmd = (dta.original as string).toLowerCase();
+  const origLC = (dta.original as string).toLowerCase();
   const prevCmd = arr[i - 1];
-  const prevX = prevCmd.args[prevCmd.args.length - 2] as number;
-  const prevY = prevCmd.args[prevCmd.args.length - 1] as number;
+  const prevOrigLC = (prevCmd.original as string).toLowerCase();
+  let prevX: number;
+  let prevY: number;
+  //
+  if (prevCmd.original === 'a') {
+    // calculate prevXY since relative a cmd args are not made absolute
+    const back2Cmd = arr[i - 2]
+    prevX = (prevCmd.args[prevCmd.args.length - 2] as number) + (back2Cmd.args[back2Cmd.args.length - 2] as number);
+    prevY = (prevCmd.args[prevCmd.args.length - 1] as number) + (back2Cmd.args[back2Cmd.args.length - 1] as number);
+  } else {
+    prevX = prevCmd.args[prevCmd.args.length - 2] as number;
+    prevY = prevCmd.args[prevCmd.args.length - 1] as number;
+  }
+  //
+  if (origLC === 's' && prevOrigLC !== 'c' && prevOrigLC !== 's') {
+    prevCArgs = [0, 0, prevX, prevY, prevX, prevY]
+  } else if (origLC === 't' && prevOrigLC !== 'q' && prevOrigLC !== 't') {
+    prevQArgs = [0, 0, prevX, prevY]
+  }
   /* console.log(i, 'prevX', prevX, 'prevY', prevY); */
   //
-  switch (lowerCaseSvgCmd) {
+  switch (origLC) {
     case 'h':
       // add y
       args.push(prevY);
@@ -137,31 +155,31 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdDa
     case 's':
       // calculate first control point from last S or C cmd
       args.unshift(
-        2 * (prevC.args[4] as number) - (prevC.args[2] as number),
-        2 * (prevC.args[5] as number) - (prevC.args[3] as number)
+        toOneDec((2 * prevX) - (prevCArgs[2] as number)),
+        toOneDec((2 * prevY) - (prevCArgs[3] as number))
       );
-      prevC.args = args;
+      prevCArgs = args;
       break;
 
     case 't':
       // calculate first control point from last Q or T cmd
       args.unshift(
-        2 * (prevQ.args[2] as number) - (prevQ.args[0] as number),
-        2 * (prevQ.args[3] as number) - (prevQ.args[1] as number)
+        toOneDec((2 * prevX) - (prevQArgs[0] as number)),
+        toOneDec((2 * prevY) - (prevQArgs[1] as number))
       );
-      prevQ.args = args;
+      prevQArgs = args;
       break;  
 
     case 'c':
-      prevC = dta;
+      prevCArgs = dta.args as number[];
       break;
 
     case 'q':
-      prevQ = dta;
+      prevQArgs = dta.args as number[];
       break;  
 
     case 'a':
-      const obj = { index: i, arr: [], processed: false, replaced: false };
+      const obj = { index: startIndex + i, arr: [], processed: false, replaced: false };
       arcToLinesArgsArr.push([
         dta.original as string, 
         prevX, 
@@ -179,15 +197,17 @@ function addMissingArgs(dta: SvgCmdData, i: number, arr: SvgCmdData[]): SvgCmdDa
   return Object.assign({}, dta, { args });
 }
 
-export default function convertArgs(cmdArr: SvgCmdData[]): ConvertArgsData {
+export default function convertArgs(cmdArr: SvgCmdData[], startIndex: number): ConvertArgsData {
   x = 0;
   y = 0;
+  prevQArgs = [];
+  prevCArgs = [];
   arcToLinesArgsArr = [];
   arcReplace = { curIndex: -1, complete: false, arr: [] };
   let newCmdArr = cmdArr.map(argsToNumArray);
   for (let i = 0; i < newCmdArr.length; i++) {
     makeCommandsFromLongArgs(newCmdArr[i], i, newCmdArr);
   }
-  newCmdArr = newCmdArr.map(makeArgsAbsolute).map(addMissingArgs);
+  newCmdArr = newCmdArr.map(makeArgsAbsolute).map((data, i, arr) => addMissingArgs(data, i, arr, startIndex));
   return Object.assign({}, { cmdArr: newCmdArr, arcToLinesArgsArr, arcReplace });
 }
