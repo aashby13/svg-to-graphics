@@ -11,8 +11,9 @@ SvgToGraphics.convert() returns a Promise. This is due to the fact that this sof
 ```
 SvgToGraphics.convert(pathData: string | string[], graphics?: createjs.Graphics, arcThresh?: number): Promise<SvgConvertData>
 
-// convenience method (rarely used):
 // if you need to redraw, feed in instructions returned in convert method
+// arcThresh will have no effect if you are feeding instructions from a previous convert
+// since the convert method already used drawPath and applied arcThresh to modify the instructions
 SvgToGraphics.drawPath(cmdArr: SvgCmdData[], graphics?: createjs.Graphics, arcThresh: number = 5): DrawPathReturnedData
 ```
 ### Returned Data

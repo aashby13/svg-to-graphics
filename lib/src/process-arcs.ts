@@ -25,7 +25,7 @@ function process(arcToLinesArgsArr: ArcToLineArgs[], cmdArr: SvgCmdData[], arcRe
       processArcs(arcToLinesArgsArr, cmdArr, arcReplace);
     }, (error: Error) => {
       arcReplace.fail = true;
-      throw (error);
+      throw error;
     });
   }
 }
