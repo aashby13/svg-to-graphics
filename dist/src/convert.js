@@ -22,6 +22,7 @@ function convert(pathData, graphics, arcThresh) {
     let arcToLinesArgsArr = [];
     let arcReplace = { curIndex: -1, complete: false, arr: [] };
     const pathArr = [];
+    let startingIndex = 0;
     // cleanup path to make easier to work with
     if (typeof pathData === 'string') {
         pathArr.push(cleanPath(pathData));
@@ -32,7 +33,8 @@ function convert(pathData, graphics, arcThresh) {
     // process path(s) to build cmdArr, arcToLinesArgsArr, & arcReplace
     pathArr.forEach(path => {
         const arr = build_cmd_arr_1.default(path);
-        const convertedData = convert_args_1.default(arr);
+        const convertedData = convert_args_1.default(arr, startingIndex);
+        startingIndex = convertedData.cmdArr.length;
         const newArcReplaceArr = arcReplace.arr.concat(convertedData.arcReplace.arr);
         cmdArr = cmdArr.concat(convertedData.cmdArr);
         arcToLinesArgsArr = arcToLinesArgsArr.concat(convertedData.arcToLinesArgsArr);

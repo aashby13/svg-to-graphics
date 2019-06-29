@@ -20,6 +20,7 @@ export default function convert(pathData: string | string[], graphics?: createjs
   let arcToLinesArgsArr: ArcToLineArgs[] = [];
   let arcReplace: ArcReplace = { curIndex: -1, complete: false, arr: [] };
   const pathArr: string[] = [];
+  let startingIndex = 0;
   // cleanup path to make easier to work with
   if (typeof pathData === 'string') {
     pathArr.push(cleanPath(pathData));
@@ -29,7 +30,8 @@ export default function convert(pathData: string | string[], graphics?: createjs
   // process path(s) to build cmdArr, arcToLinesArgsArr, & arcReplace
   pathArr.forEach(path => {
     const arr = buildCommandArray(path);
-    const convertedData = convertArgs(arr);
+    const convertedData = convertArgs(arr, startingIndex);
+    startingIndex = convertedData.cmdArr.length;
     const newArcReplaceArr = arcReplace.arr.concat(convertedData.arcReplace.arr);
     cmdArr = cmdArr.concat(convertedData.cmdArr);
     arcToLinesArgsArr = arcToLinesArgsArr.concat(convertedData.arcToLinesArgsArr);

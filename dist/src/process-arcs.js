@@ -24,7 +24,7 @@ function process(arcToLinesArgsArr, cmdArr, arcReplace) {
         replaceArc(cmdArr, arcReplace);
     }
     else {
-        const atl = arcToLinesArgsArr.splice(0, 1)[0];
+        const atl = arcToLinesArgsArr.shift();
         arc_to_lines_1.default(...atl).then(() => {
             processArcs(arcToLinesArgsArr, cmdArr, arcReplace);
         }, (error) => {
